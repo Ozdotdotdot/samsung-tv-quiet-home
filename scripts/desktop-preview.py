@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serve only desktop UI/check files on loopback. No TV connections or SDK use."""
+"""Serve only desktop UI/check files. No TV connections or SDK use."""
 import argparse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -29,7 +29,8 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--bind', default='127.0.0.1', help='Listen address; defaults to loopback')
     parser.add_argument('--port', type=int, default=8796)
     args = parser.parse_args()
-    print(f'UI: http://127.0.0.1:{args.port}/candidate/\nChecks: /tests/desktop.html', flush=True)
-    HTTPServer(('127.0.0.1', args.port), Handler).serve_forever()
+    print(f'UI: http://{args.bind}:{args.port}/candidate/\nChecks: /tests/desktop.html', flush=True)
+    HTTPServer((args.bind, args.port), Handler).serve_forever()

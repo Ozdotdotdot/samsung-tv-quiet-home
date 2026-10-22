@@ -67,6 +67,12 @@ helper is guarded against the observed on-device string, not a guessed version.
 
 ## Repository contents
 
+Desktop preview: run `python3 scripts/desktop-preview.py`, then open
+`http://127.0.0.1:8796/candidate/`. Use `--bind YOUR_LAN_IP` to make the same
+preview accessible to other devices on your network. Arrow keys navigate;
+Enter selects; hold Enter or move below the last item for TV controls. The first
+arrow/Enter wakes the clock screen. App launching requires the TV runtime.
+
 - `launcher/`: undeployed 1.1 list candidate (installed 1.0 baseline is in Git history); no analytics, external fonts,
   autoplay player or remote image dependency. It uses normal Tizen app launching.
 - `helper/`: firmware-guarded one-shot Home route/restore helper and exact SQL.

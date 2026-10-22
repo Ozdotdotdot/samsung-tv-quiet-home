@@ -107,5 +107,6 @@ and propose a small comparable native benchmark before building a replacement.
 Run `python3 scripts/desktop-preview.py`. Open the printed `/candidate/` URL.
 `/tests/desktop.html` exposes `runChecks()` in the desktop browser console and
 renders the result list. The server only serves explicit UI/test routes on
-loopback; it does not expose credentials, backups or device tools. Tests use a
+loopback by default; use `--bind YOUR_LAN_IP` to test from another computer on
+your network. It does not expose credentials, backups or device tools. Tests use a
 fake Tizen launch API in isolated iframes; the packaged launcher contains no mock.
