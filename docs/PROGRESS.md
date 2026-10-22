@@ -58,3 +58,13 @@ One SDK capture read only current fullscreen/partial IDs: TV Viewer, empty overl
 No keys, launches, installs, reboot or ongoing viewing logger were used. The local
 private record is `news-current-app.txt`. This does not identify the channel or
 prove how it was opened. All other device interaction remains paused.
+
+## Desktop design pass — no TV contact
+
+Saved the supplied concepts verbatim and implemented the 1.1 list/ambient candidate.
+Thirty desktop checks pass; ES5 parsing and two viewport layout checks pass.
+No candidate package was installed, no native routing or boot integration changed,
+and no device tracing was enabled. On-TV before/after timings remain pending.
+Samsung's Virtual Tune-In documentation confirms provider/service-ID targeting
+inside its TV UI; no AU8000 NBC appcontrol payload has been verified. See
+`design/README.md` and `design/NBC-ROUTING.md`.

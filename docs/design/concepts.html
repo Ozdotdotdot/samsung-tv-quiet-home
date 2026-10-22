@@ -1,0 +1,81 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+.wrap{display:flex;flex-direction:column;gap:28px;font-family:var(--font-sans)}
+.c h3{margin:0 0 4px;font-size:16px;font-weight:600}
+.c p{margin:0 0 10px;font-size:13px;color:var(--muted-foreground);line-height:1.45}
+.tv{container-type:inline-size;position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;background:#0d0f12;color:#ece8e1;font-family:Inter,Helvetica,Arial,sans-serif}
+.tv *{box-sizing:border-box}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--secondary);color:var(--secondary-foreground);margin-right:6px}
+.rec{background:var(--accent-surface);color:var(--accent-surface-foreground)}
+/* A */
+.a{padding:6cqw 6cqw}
+.a .top{display:flex;justify-content:space-between;color:#8d8a84;font-size:1.6cqw}
+.a .row{display:flex;margin-top:9cqw}
+.a .t{width:16cqw;height:10cqw;margin-right:1.6cqw;border-radius:1cqw;background:#1a1c20;display:flex;align-items:flex-end;padding:1.2cqw;font-size:1.7cqw;color:#bdb8b0}
+.a .t.f{background:#ece8e1;color:#111;transform:scale(1.08);transform-origin:left bottom}
+.a .lbl{margin-top:4.5cqw;font-size:1.2cqw;letter-spacing:.2em;color:#6b6862}
+.a .news{display:flex;margin-top:1.4cqw}
+.a .n{font-size:1.6cqw;color:#9b978f;margin-right:3.5cqw}
+/* B */
+.b{display:flex;padding:7cqw 7cqw}
+.b ul{list-style:none;margin:0;padding:0;flex:1}
+.b li{font-family:Georgia,serif;font-size:3.6cqw;line-height:1.32;color:#ece8e1;opacity:.28}
+.b li.f{opacity:1}
+.b li.f:before{content:'';display:inline-block;width:.9cqw;height:.9cqw;border-radius:50%;background:#e8b86a;margin:0 1.6cqw .7cqw -2.5cqw}
+.b li.h{font-family:Inter,Helvetica,sans-serif;font-size:1.1cqw;letter-spacing:.22em;opacity:.45;margin-top:2cqw;line-height:2}
+.b .side{text-align:right;color:#8d8a84;font-size:1.5cqw}
+.b .side b{display:block;font-weight:300;font-size:7cqw;color:#ece8e1;letter-spacing:-.03em}
+/* C */
+.cc{display:flex;align-items:center;justify-content:center;height:100%}
+.cc .d{width:30cqw;height:30cqw;margin:0 1.5cqw;border-radius:1.6cqw;background:#17191d;display:flex;flex-direction:column;justify-content:flex-end;padding:2.5cqw}
+.cc .d.f{background:#2a2620;box-shadow:0 0 0 .3cqw #e8b86a}
+.cc .d b{font-family:Georgia,serif;font-weight:400;font-size:4.4cqw}
+.cc .d span{font-size:1.4cqw;color:#9b978f;margin-top:.8cqw}
+/* D */
+.dd{height:100%;background:radial-gradient(ellipse at 30% 40%,#1b1a17 0,#0a0a0b 70%)}
+.dd .clock{position:absolute;left:7cqw;top:12cqw;font-weight:200;font-size:13cqw;letter-spacing:-.04em;color:#d9d4cb}
+.dd .date{position:absolute;left:7.4cqw;top:29cqw;font-size:1.8cqw;color:#7e7a73}
+.dd .dock{position:absolute;left:7cqw;right:7cqw;bottom:5cqw;display:flex;opacity:.9}
+.dd .dock span{font-size:1.7cqw;color:#8d8a84;margin-right:4cqw;padding-bottom:.8cqw}
+.dd .dock span.f{color:#ece8e1;border-bottom:.25cqw solid #e8b86a}
+.dd .hint{position:absolute;right:7cqw;top:6cqw;font-size:1.2cqw;color:#55524d}
+/* E */
+.e{background:#efe9dd;color:#1d1b18;padding:5cqw 7cqw;font-family:Georgia,serif}
+.e .mast{display:flex;justify-content:space-between;align-items:baseline;border-bottom:.2cqw solid #1d1b18;padding-bottom:1cqw;font-size:1.4cqw;font-family:Inter,Helvetica,sans-serif;letter-spacing:.15em}
+.e .mast b{font-family:Georgia,serif;font-size:3.4cqw;letter-spacing:0;font-weight:400;font-style:italic}
+.e .cols{display:flex;margin-top:3cqw}
+.e .col{flex:1;padding-right:3cqw}
+.e .col+.col{border-left:.1cqw solid #b9b1a2;padding-left:3cqw}
+.e .k{font-family:Inter,Helvetica,sans-serif;font-size:1.1cqw;letter-spacing:.2em;color:#7a7266;margin-bottom:1.2cqw}
+.e .it{font-size:3.1cqw;line-height:1.35;color:#1d1b18}
+.e .it.f{text-decoration:underline;text-decoration-thickness:.3cqw;text-underline-offset:.6cqw;text-decoration-color:#b2442c}
+</style></head><body><div class="wrap">
+
+<div class="c"><h3>B · The List <span class="tag rec">my pick</span></h3>
+<p>One column of words. Up/Down to move, OK to open, nothing else. The highlighted item is fully bright and the rest drop to about 30%, so you can find your place across the room. It works like an old radio dial, and it's the quietest way for your dad to read it at 10 feet on a 75".</p>
+<div class="tv"><div class="b"><ul>
+<li class="h">WATCH</li><li>YouTube</li><li class="f">Netflix</li><li>Prime Video</li><li>Disney+</li><li>Jellyfin</li>
+<li class="h">NEWS</li><li>NBC News</li><li>Live news channels</li></ul>
+<div class="side"><b>8:42</b>Thursday, October 22</div></div></div></div>
+
+<div class="c"><h3>D · Ambient clock</h3>
+<p>The TV turns on to a dim clock. There are no tiles until you press a button, and then a single row of text appears at the bottom. After 30 seconds without input the row fades away, and after 10 minutes the screen goes black. This is the most "quiet" option, and it pairs well with B.</p>
+<div class="tv"><div class="dd"><div class="hint">press any arrow</div><div class="clock">8:42</div><div class="date">Thursday, October 22</div>
+<div class="dock"><span>YouTube</span><span class="f">Netflix</span><span>Prime Video</span><span>Disney+</span><span>Jellyfin</span><span>NBC News</span><span>Live news</span></div></div></div></div>
+
+<div class="c"><h3>A · One row, no previews</h3>
+<p>This is Apple TV's layout with the top-shelf trailers taken out: one row of five large solid tiles for Watch and a smaller text row for News below it. People who've used any other TV will recognize it right away. It's the safest choice, but also the least distinctive.</p>
+<div class="tv"><div class="a"><div class="top"><span>Thursday</span><span>8:42</span></div>
+<div class="row"><div class="t">YouTube</div><div class="t f">Netflix</div><div class="t">Prime Video</div><div class="t">Disney+</div><div class="t">Jellyfin</div></div>
+<div class="lbl">NEWS</div><div class="news"><span class="n">NBC News</span><span class="n">Live news channels</span></div></div></div></div>
+
+<div class="c"><h3>C · Two doors</h3>
+<p>The first screen asks only one thing: Watch or News. Each door opens to a short list. Every screen has at most five choices, but getting to any app takes one more click. This makes sense if news is what he opens most often.</p>
+<div class="tv"><div class="cc"><div class="d f"><b>Watch</b><span>YouTube · Netflix · Prime · Disney+ · Jellyfin</span></div><div class="d"><b>News</b><span>NBC News · live channels</span></div></div></div></div>
+
+<div class="c"><h3>E · Morning paper</h3>
+<p>A light, newsprint-style layout with app names set like headlines. It's the most distinctive concept and fits the news habit. The catch is that a cream screen is bright in a dark room, so it would need to switch to a dark version after sunset.</p>
+<div class="tv"><div class="e"><div class="mast"><span>THURSDAY, OCTOBER 22</span><b>The Living Room</b><span>8:42 PM</span></div>
+<div class="cols"><div class="col"><div class="k">WATCH</div><div class="it">YouTube</div><div class="it f">Netflix</div><div class="it">Prime Video</div><div class="it">Disney+</div><div class="it">Jellyfin</div></div>
+<div class="col"><div class="k">NEWS</div><div class="it">NBC News</div><div class="it">Live news channels</div></div></div></div></div></div>
+
+</div></body></html>

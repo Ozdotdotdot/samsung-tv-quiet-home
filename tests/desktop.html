@@ -1,0 +1,66 @@
+<!doctype html><meta charset="utf-8"><title>Quiet Home desktop checks</title>
+<style>body{background:#17191d;color:#ece8e1;font:16px monospace}iframe{width:960px;height:540px;border:0}pre{white-space:pre-wrap}</style>
+<h1>Quiet Home desktop checks</h1><pre id="results">Run window.runChecks() in the browser console.</pre><div id="frames"></div>
+<script>
+// Desktop-only fixture. The packaged launcher contains no mocks or fake timers.
+async function fixture(options){
+ const text=await(await fetch('../candidate/index.html')).text();
+ const frame=document.createElement('iframe');document.getElementById('frames').appendChild(frame);
+ const bootstrap=`(${function(options){
+  var clock=0,next=1,tasks={},visible=true;
+  window.setTimeout=function(fn,ms){var id=next++;tasks[id]={at:clock+(ms||0),fn:fn};return id;};
+  window.clearTimeout=function(id){delete tasks[id];};
+  window.advance=function(ms){var until=clock+ms,count=0;while(true){var id=null,at=Infinity;Object.keys(tasks).forEach(function(k){if(tasks[k].at<at){at=tasks[k].at;id=k;}});if(id===null||at>until)break;if(++count>1000)throw Error('Timer loop');clock=at;var fn=tasks[id].fn;delete tasks[id];fn();}clock=until;};
+  Object.defineProperty(document,'hidden',{configurable:true,get:function(){return !visible;}});
+  window.setVisible=function(v){visible=v;document.dispatchEvent(new Event('visibilitychange'));};
+  window.calls=[];window.behavior='success';window.pendingSuccess=null;
+  window.tizen={application:{launch:function(id,success,failure){calls.push(id);if(behavior==='fail')failure({name:'SECRET_ERROR_42'});else if(behavior==='throw')throw Error('SECRET_ERROR_42');else if(behavior==='pending')pendingSuccess=success;else success();}}};
+  try{if(options.storageBlocked){Object.defineProperty(window,'localStorage',{get:function(){throw Error('blocked');}});}else{localStorage.removeItem('quiet-home.last-opened.v1');if(options.last)localStorage.setItem('quiet-home.last-opened.v1',options.last);}}catch(e){}
+  window.key=function(k,type,repeat){document.dispatchEvent(new KeyboardEvent(type||'keydown',{keyCode:k,which:k,repeat:!!repeat,bubbles:true,cancelable:true}));};
+  window.tap=function(k){key(k);key(k,'keyup');};
+ }.toString()})(${JSON.stringify(options||{})});`;
+ frame.srcdoc=text.replace('<head>','<head><script>'+bootstrap+'<\/script>');
+ await new Promise(resolve=>frame.onload=resolve);return {w:frame.contentWindow,frame};
+}
+window.runChecks=async function(){
+ const results=[];let current;
+ function check(name,ok){results.push({name,pass:!!ok});if(!ok)throw Error(name);}
+ async function fresh(options){if(current)current.frame.remove();current=await fixture(options);return current.w;}
+ try{
+  let w=await fresh();const state=()=>w.QuietHome.state();
+  check('Cold document begins with clock only',state().mode==='ambient'&&w.document.getElementById('home').getAttribute('aria-hidden')==='true');
+  w.tap(13);check('First OK only wakes; it does not launch',state().mode==='list'&&w.calls.length===0);
+  w.tap(40);check('Down focuses Netflix, skipping section headings',state().selected==='netflix');
+  w.tap(37);w.tap(39);w.tap(10009);check('Left/right/back keep the selection and do not launch',state().selected==='netflix'&&w.calls.length===0);
+  w.tap(13);check('OK release launches once and remembers the item',w.calls.length===1&&w.calls[0]==='org.tizen.netflix-app'&&state().lastOpened==='netflix');
+  w.key(13);w.key(13,'keydown',true);w.advance(701);w.key(13,'keyup');check('Held OK opens controls without an extra launch',state().menu&&w.calls.length===1);
+  w.tap(10009);check('Back closes controls without opening Samsung Home',!state().menu&&w.calls.length===1);
+  w.tap(40);w.tap(40);w.tap(40);w.tap(40);check('News is after the five WATCH items',state().selected==='nbc');
+  w.tap(13);check('NBC currently requests the configured TV Plus fallback',w.calls[1]==='com.samsung.tv.tvPlusDeeplinker');
+  w.tap(40);w.tap(40);check('Down past the final item provides controls fallback',state().menu);
+  w.tap(40);w.tap(13);check('Hidden Samsung Apps control requests its existing app ID',w.calls[2]==='com.samsung.tv.coba.apps');
+  w.tap(10009);w.advance(30000);check('30 seconds idle hides the list',state().mode==='ambient');
+  w.advance(570000);check('Ten minutes idle enters full black',state().mode==='black'&&w.getComputedStyle(w.document.body).backgroundColor==='rgb(0, 0, 0)');
+  const calls=w.calls.length;w.tap(10009);check('Back wakes black without launching',state().mode==='list'&&w.calls.length===calls);
+  w.setVisible(false);w.advance(700000);check('Hidden lifecycle cancels idle timers',state().hidden&&state().mode==='list');
+  w.setVisible(true);check('Resume restores last opened NBC item without reload',state().selected==='nbc'&&w.QuietHome.metrics().resumes===1);
+  w=await fresh({last:'disney'});w.tap(38);check('Cold document restores persisted focus when woken',state().selected==='disney');
+  w=await fresh({last:'stale-hbo-id'});w.tap(38);check('Unknown stored IDs safely fall back to YouTube',state().selected==='youtube');
+  w.behavior='fail';w.tap(13);const msg=w.document.getElementById('message');check('Failure shows plain app-specific message without code',msg.textContent==="YouTube didn't open — try again"&&msg.textContent.indexOf('SECRET')<0);
+  w.advance(3200);check('Failure message fades away',msg.className==='');
+  w.behavior='throw';w.tap(13);check('Synchronous native exceptions are contained',!state().launchPending);
+  w.behavior='pending';w.tap(13);w.tap(13);check('Repeated OK cannot duplicate a pending launch',w.calls.length===3);
+  w.advance(6000);check('Missing launch callback has a bounded timeout',!state().launchPending);
+  w.pendingSuccess();check('Late callbacks do not change persisted focus',state().lastOpened===null);
+  w=await fresh();w.key(13);w.key(13,'keydown',true);w.advance(900);w.key(13,'keyup');
+  check('Holding OK to wake does not immediately open controls or launch',state().mode==='list'&&!state().menu&&w.calls.length===0);
+  w.behavior='pending';w.tap(13);w.setVisible(false);w.advance(7000);
+  check('No failure timer or message runs while hidden',w.document.getElementById('message').className==='');
+  w.setVisible(true);check('Resume releases a stale pending launch',!state().launchPending);
+  w=await fresh({storageBlocked:true});w.tap(13);w.tap(13);check('Blocked localStorage does not prevent use',w.calls.length===1&&state().lastOpened==='youtube');
+  check('HBO is absent from visible list',w.document.getElementById('list').textContent.indexOf('HBO')<0);
+  check('No images/fonts/media/scripts are fetched by the launcher',w.performance.getEntriesByType('resource').length===0);
+ }catch(e){results.push({error:String(e)});}
+ document.getElementById('results').textContent=JSON.stringify(results,null,2);window.testResults=results;return results;
+};
+</script>

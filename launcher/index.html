@@ -1,1 +1,225 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quiet Home</title><link rel="stylesheet" href="style.css"><script src="$WEBAPIS/webapis/webapis.js"></script></head><body><main><header><div><span class="eyebrow">MAKE YOURSELF AT HOME</span><h1>What would you like to watch?</h1></div><time id="clock"></time></header><section id="apps" aria-label="Streaming apps"></section><footer><div id="tools" aria-label="TV controls"></div><p id="status" role="status">Choose an app · Press OK to open</p></footer></main><script src="main.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'">
+<title>Quiet Home</title>
+<style>
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#0d0f12;color:#ece8e1}
+body{font-family:Arial,Helvetica,sans-serif}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#home,#ambient{position:absolute;left:0;right:0;top:0;bottom:0;transition:opacity 100ms linear}
+#home{opacity:0;pointer-events:none}
+body[data-mode="list"] #home{opacity:1;pointer-events:auto}
+#list{position:absolute;left:7%;top:7%;width:51%}
+.section{font-size:1.1vw;font-weight:400;letter-spacing:.22em;color:#8d8a84;line-height:2;margin:0 0 .45vw}
+.section.news{margin-top:1.2vw}
+.item{display:block;position:relative;width:100%;margin:0;padding:0;border:0;outline:0;background:none;color:#ece8e1;text-align:left;font-family:Georgia,"Times New Roman",serif;font-size:3.6vw;font-weight:400;line-height:1.3;opacity:.28;transition:opacity 100ms linear}
+.item::before{content:"";position:absolute;width:.48vw;height:.48vw;border-radius:50%;left:-1.65vw;top:.58em;background:#e8b86a;opacity:0;transition:opacity 100ms linear}
+.item.selected{opacity:1}
+.item.selected::before{opacity:1}
+.clock{position:absolute;right:7%;top:7%;text-align:right;font-variant-numeric:tabular-nums}
+.time{display:block;font-size:7vw;font-weight:200;letter-spacing:-.045em;line-height:1.1}
+.date{display:block;font-size:1.4vw;font-weight:400;color:#8d8a84;line-height:2.3}
+#ambient{opacity:1;pointer-events:none}
+#ambient .clock{left:7%;right:auto;top:22%;text-align:left}
+#ambient .time{font-size:13vw;color:#d9d4cb}
+#ambient .date{font-size:1.8vw;line-height:2.8}
+body[data-mode="list"] #ambient,body[data-mode="black"] #ambient{opacity:0}
+body[data-mode="black"]{background:#000}
+#controls{position:absolute;left:7%;top:51%;opacity:0;pointer-events:none;transition:opacity 100ms linear}
+#controls h2{font-size:1vw;letter-spacing:.2em;color:#8d8a84;font-weight:400;margin:0 0 1vw}
+.control{font-size:1.9vw;line-height:1.6}
+body[data-menu="open"] #list{opacity:0;pointer-events:none}
+body[data-menu="open"][data-mode="list"] #controls{opacity:1;pointer-events:auto}
+#message{position:absolute;left:7%;bottom:5%;margin:0;color:#ece8e1;font-size:1.15vw;opacity:0;transition:opacity 100ms linear;pointer-events:none}
+#message.shown{opacity:1}
+body[data-mode="black"] #message{opacity:0}
+@media(prefers-reduced-motion:reduce){#home,#ambient,.item,.item::before,#controls,#message{transition:none}}
+</style>
+</head>
+<body data-mode="ambient" data-menu="closed">
+<main id="home" aria-label="Quiet Home" aria-hidden="true" inert>
+<nav id="list" aria-label="Watch and news">
+<h2 class="section">WATCH</h2>
+<button class="item" data-item="youtube" tabindex="-1">YouTube</button>
+<button class="item" data-item="netflix" tabindex="-1">Netflix</button>
+<button class="item" data-item="prime" tabindex="-1">Prime Video</button>
+<button class="item" data-item="disney" tabindex="-1">Disney+</button>
+<button class="item" data-item="jellyfin" tabindex="-1">Jellyfin</button>
+<h2 class="section news">NEWS</h2>
+<button class="item" data-item="nbc" tabindex="-1">NBC News</button>
+<button class="item" data-item="news" tabindex="-1">Live news channels</button>
+</nav>
+<div class="clock"><time class="time"></time><span class="date"></span></div>
+<section id="controls" role="dialog" aria-label="TV controls" aria-hidden="true" inert>
+<h2>TV CONTROLS</h2>
+<button class="item control" data-tool="home" tabindex="-1">Samsung Home</button>
+<button class="item control" data-tool="apps" tabindex="-1">Samsung Apps</button>
+<button class="item control" data-tool="settings" tabindex="-1">TV Settings</button>
+<button class="item control" data-tool="close" tabindex="-1">Close</button>
+</section>
+</main>
+<div id="ambient" aria-label="Clock"><div class="clock"><time class="time"></time><span class="date"></span></div></div>
+<p id="message" role="status" aria-live="polite"></p>
+<script>
+(function () {
+'use strict';
+var STORAGE = 'quiet-home.last-opened.v1';
+var items = [
+ {key:'youtube',name:'YouTube',id:'9Ur5IzDKqV.TizenYouTube'},
+ {key:'netflix',name:'Netflix',id:'org.tizen.netflix-app'},
+ {key:'prime',name:'Prime Video',id:'org.tizen.primevideo'},
+ {key:'disney',name:'Disney+',id:'MCmYXNxgcu.DisneyPlus'},
+ {key:'jellyfin',name:'Jellyfin',id:'AprZAARz4r.Jellyfin'},
+ // Channel-specific NBC appcontrol data has not been verified on this firmware.
+ {key:'nbc',name:'NBC News',id:'com.samsung.tv.tvPlusDeeplinker'},
+ {key:'news',name:'Live news channels',id:'com.samsung.tv.tvPlusDeeplinker'}
+];
+var tools = [
+ {key:'home',name:'Samsung Home',id:'com.samsung.tv.csfs'},
+ {key:'apps',name:'Samsung Apps',id:'com.samsung.tv.coba.apps'},
+ {key:'settings',name:'TV Settings',id:'com.samsung.tv.coba.setting'},
+ {key:'close',name:'Close'}
+];
+var body=document.body,home=document.getElementById('home'),list=document.getElementById('list');
+var controls=document.getElementById('controls'),message=document.getElementById('message');
+var buttons=list.querySelectorAll('button'),toolButtons=controls.querySelectorAll('button');
+var mode='ambient',menu=false,selected=0,toolIndex=0,lastOpened=null,hidden=document.hidden;
+var idleTimer=0,blackTimer=0,clockTimer=0,holdTimer=0,messageTimer=0,launchTimer=0;
+var okDown=false,okConsumed=false,launchPending=false,launchSerial=0,resumes=0,hasBackgrounded=false;
+var metrics={readyMs:0,resumes:0,lastResumeMs:null};
+function now(){return window.performance&&performance.now?performance.now():Date.now();}
+function clearHold(){clearTimeout(holdTimer);holdTimer=0;okDown=false;}
+function restoreLast(){
+ try{lastOpened=localStorage.getItem(STORAGE);}catch(e){}
+ for(var i=0;i<items.length;i++){if(items[i].key===lastOpened){selected=i;return;}}
+ lastOpened=null;
+}
+function remember(item){
+ lastOpened=item.key;
+ for(var i=0;i<items.length;i++){if(items[i].key===item.key)selected=i;}
+ try{localStorage.setItem(STORAGE,item.key);}catch(e){}
+}
+function paintFocus(){
+ var i;
+ for(i=0;i<buttons.length;i++){buttons[i].className='item'+(i===selected?' selected':'');buttons[i].tabIndex=mode==='list'&&!menu&&i===selected?0:-1;}
+ for(i=0;i<toolButtons.length;i++){toolButtons[i].className='item control'+(i===toolIndex?' selected':'');toolButtons[i].tabIndex=mode==='list'&&menu&&i===toolIndex?0:-1;}
+ home.setAttribute('aria-hidden',mode==='list'?'false':'true');
+ home.toggleAttribute('inert',mode!=='list');
+ list.setAttribute('aria-hidden',menu?'true':'false');
+ list.toggleAttribute('inert',menu);
+ controls.setAttribute('aria-hidden',menu&&mode==='list'?'false':'true');
+ controls.toggleAttribute('inert',!menu||mode!=='list');
+ if(mode==='list'&&!hidden){(menu?toolButtons[toolIndex]:buttons[selected]).focus();}
+ else if(document.activeElement&&document.activeElement.blur){document.activeElement.blur();}
+}
+function stopIdle(){clearTimeout(idleTimer);clearTimeout(blackTimer);idleTimer=blackTimer=0;}
+function setMode(next){
+ mode=next;body.setAttribute('data-mode',mode);
+ if(next!=='list'){menu=false;body.setAttribute('data-menu','closed');clearHold();message.className='';}
+ paintFocus();
+ if(next==='black'){clearTimeout(clockTimer);clockTimer=0;}
+ else if(!clockTimer&&!hidden){clock();}
+}
+function armIdle(){
+ stopIdle();if(hidden)return;
+ idleTimer=setTimeout(function(){setMode('ambient');},30000);
+ blackTimer=setTimeout(function(){setMode('black');},600000);
+}
+function showMenu(){menu=true;toolIndex=0;body.setAttribute('data-menu','open');paintFocus();armIdle();}
+function closeMenu(){menu=false;body.setAttribute('data-menu','closed');paintFocus();armIdle();}
+function fail(name){
+ message.textContent=name+" didn't open — try again";message.className='shown';
+ clearTimeout(messageTimer);messageTimer=setTimeout(function(){message.className='';},3200);
+}
+function launch(item){
+ if(item.key==='close'){closeMenu();return;}
+ if(launchPending||hidden)return;
+ if(!window.tizen||!tizen.application||typeof tizen.application.launch!=='function'){fail(item.name);return;}
+ launchPending=true;var serial=++launchSerial,rememberable=items.indexOf(item)!==-1;
+ function finish(success){
+  if(serial!==launchSerial)return;
+  clearTimeout(launchTimer);launchTimer=0;launchPending=false;launchSerial++;
+  if(success){if(rememberable)remember(item);}else if(!hidden){fail(item.name);}
+ }
+ launchTimer=setTimeout(function(){finish(false);},6000);
+ try{tizen.application.launch(item.id,function(){finish(true);},function(){finish(false);});}
+ catch(e){finish(false);}
+}
+function clock(){
+ clearTimeout(clockTimer);clockTimer=0;if(hidden||mode==='black')return;
+ var date=new Date(),h=date.getHours(),m=date.getMinutes();
+ var time=(h%12||12)+':'+(m<10?'0':'')+m;
+ var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+ var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+ var label=days[date.getDay()]+', '+months[date.getMonth()]+' '+date.getDate();
+ var times=document.querySelectorAll('.time'),dates=document.querySelectorAll('.date'),i;
+ for(i=0;i<times.length;i++)times[i].textContent=time;
+ for(i=0;i<dates.length;i++)dates[i].textContent=label;
+ clockTimer=setTimeout(clock,60000-(date.getSeconds()*1000+date.getMilliseconds())+20);
+}
+function code(e){
+ var k=e.keyCode||e.which;
+ if(k)return k;
+ return {ArrowUp:38,ArrowDown:40,ArrowLeft:37,ArrowRight:39,Enter:13,Escape:27,Backspace:8}[e.key]||0;
+}
+function down(e){
+ var k=code(e),arrow=k>=37&&k<=40,back=k===10009||k===27||k===8;
+ if(hidden)return;
+ if(arrow||k===13||back||k===9)e.preventDefault();
+ // A wake gesture is consumed, including its repeats and eventual OK release.
+ if(mode==='black'||(mode==='ambient'&&(arrow||k===13))){
+  setMode('list');armIdle();okConsumed=true;if(k===13)okDown=true;return;
+ }
+ if(mode!=='list')return;
+ armIdle();
+ if(k===13){
+  if(okDown||e.repeat)return;
+  okDown=true;okConsumed=false;
+  holdTimer=setTimeout(function(){if(okDown){okConsumed=true;showMenu();}},700);
+ }else if(arrow){
+  if(okDown)okConsumed=true;
+  if(k===38){if(menu)toolIndex=Math.max(0,toolIndex-1);else selected=Math.max(0,selected-1);}
+  if(k===40){if(menu)toolIndex=Math.min(tools.length-1,toolIndex+1);else if(selected===items.length-1)showMenu();else selected++;}
+  paintFocus();
+ }else if(back&&menu){clearHold();okConsumed=true;closeMenu();}
+}
+function up(e){
+ if(code(e)!==13)return;
+ e.preventDefault();var select=okDown&&!okConsumed&&mode==='list'&&!hidden;
+ clearHold();okConsumed=false;if(select)launch(menu?tools[toolIndex]:items[selected]);
+}
+function lifecycle(){
+ hidden=document.hidden;clearHold();okConsumed=true;stopIdle();clearTimeout(clockTimer);clockTimer=0;
+ clearTimeout(messageTimer);message.className='';
+ if(hidden){hasBackgrounded=true;clearTimeout(launchTimer);launchTimer=0;return;}
+ if(launchPending){launchPending=false;launchSerial++;}
+ var start=now();resumes++;restoreLast();menu=false;body.setAttribute('data-menu','closed');setMode('list');clock();armIdle();
+ metrics.resumes=resumes;metrics.lastResumeMs=now()-start;
+}
+function bindClick(button,item,index,isTool){
+ button.addEventListener('click',function(e){
+  e.preventDefault();if(hidden)return;
+  // Keyboard activation is handled once on OK keyup, never again as a click.
+  if(e.detail===0)return;
+  if(mode!=='list'){setMode('list');armIdle();return;}
+  if(isTool)toolIndex=index;else selected=index;paintFocus();armIdle();launch(item);
+ });
+}
+for(var i=0;i<items.length;i++)bindClick(buttons[i],items[i],i,false);
+for(var j=0;j<tools.length;j++)bindClick(toolButtons[j],tools[j],j,true);
+document.addEventListener('keydown',down);document.addEventListener('keyup',up);
+document.addEventListener('visibilitychange',lifecycle);
+window.addEventListener('appcontrol',function(){if(hasBackgrounded&&!document.hidden)lifecycle();});
+window.addEventListener('blur',function(){clearHold();okConsumed=true;});
+restoreLast();paintFocus();clock();armIdle();metrics.readyMs=now();
+if(window.performance&&performance.mark)performance.mark('quiet-home-ready');
+// Read-only in-memory diagnostics; no network, device telemetry or persistent logs.
+window.QuietHome={state:function(){return {mode:mode,menu:menu,selected:items[selected].key,tool:tools[toolIndex].key,lastOpened:lastOpened,launchPending:launchPending,hidden:hidden};},metrics:function(){return {readyMs:metrics.readyMs,resumes:metrics.resumes,lastResumeMs:metrics.lastResumeMs,documentStartedAt:window.performance&&performance.timing?performance.timing.navigationStart:null};}};
+}());
+</script>
+</body>
+</html>

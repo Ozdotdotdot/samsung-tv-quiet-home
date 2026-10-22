@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Cold document begins with clock only",
+    "pass": true
+  },
+  {
+    "name": "First OK only wakes; it does not launch",
+    "pass": true
+  },
+  {
+    "name": "Down focuses Netflix, skipping section headings",
+    "pass": true
+  },
+  {
+    "name": "Left/right/back keep the selection and do not launch",
+    "pass": true
+  },
+  {
+    "name": "OK release launches once and remembers the item",
+    "pass": true
+  },
+  {
+    "name": "Held OK opens controls without an extra launch",
+    "pass": true
+  },
+  {
+    "name": "Back closes controls without opening Samsung Home",
+    "pass": true
+  },
+  {
+    "name": "News is after the five WATCH items",
+    "pass": true
+  },
+  {
+    "name": "NBC currently requests the configured TV Plus fallback",
+    "pass": true
+  },
+  {
+    "name": "Down past the final item provides controls fallback",
+    "pass": true
+  },
+  {
+    "name": "Hidden Samsung Apps control requests its existing app ID",
+    "pass": true
+  },
+  {
+    "name": "30 seconds idle hides the list",
+    "pass": true
+  },
+  {
+    "name": "Ten minutes idle enters full black",
+    "pass": true
+  },
+  {
+    "name": "Back wakes black without launching",
+    "pass": true
+  },
+  {
+    "name": "Hidden lifecycle cancels idle timers",
+    "pass": true
+  },
+  {
+    "name": "Resume restores last opened NBC item without reload",
+    "pass": true
+  },
+  {
+    "name": "Cold document restores persisted focus when woken",
+    "pass": true
+  },
+  {
+    "name": "Unknown stored IDs safely fall back to YouTube",
+    "pass": true
+  },
+  {
+    "name": "Failure shows plain app-specific message without code",
+    "pass": true
+  },
+  {
+    "name": "Failure message fades away",
+    "pass": true
+  },
+  {
+    "name": "Synchronous native exceptions are contained",
+    "pass": true
+  },
+  {
+    "name": "Repeated OK cannot duplicate a pending launch",
+    "pass": true
+  },
+  {
+    "name": "Missing launch callback has a bounded timeout",
+    "pass": true
+  },
+  {
+    "name": "Late callbacks do not change persisted focus",
+    "pass": true
+  },
+  {
+    "name": "Holding OK to wake does not immediately open controls or launch",
+    "pass": true
+  },
+  {
+    "name": "No failure timer or message runs while hidden",
+    "pass": true
+  },
+  {
+    "name": "Resume releases a stale pending launch",
+    "pass": true
+  },
+  {
+    "name": "Blocked localStorage does not prevent use",
+    "pass": true
+  },
+  {
+    "name": "HBO is absent from visible list",
+    "pass": true
+  },
+  {
+    "name": "No images/fonts/media/scripts are fetched by the launcher",
+    "pass": true
+  }
+]

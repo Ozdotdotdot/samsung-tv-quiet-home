@@ -9,6 +9,15 @@ launcher is one component, not the definition of success.
 used. Agree on the keep/disable/remove list before further UI or cleanup changes.
 DNS filtering is also paused.
 
+## Desktop design candidate — 1.1
+
+Ozair selected **The List** with an ambient clock. The candidate source is now
+single-file HTML with five WATCH items and two NEWS entries, hidden TV controls,
+remembered focus and timed clock/black idle states. It is **not deployed**.
+See [design, checks and measurement limits](docs/design/README.md) and
+[NBC direct-channel research](docs/design/NBC-ROUTING.md). The saved concepts
+and desktop screenshots are in `docs/design/`.
+
 ## Preserve
 
 YouTube, Netflix, Prime Video, Disney+, HBO Max, Jellyfin and Samsung Apps.
@@ -58,7 +67,7 @@ helper is guarded against the observed on-device string, not a guessed version.
 
 ## Repository contents
 
-- `launcher/`: installed six-app baseline UI; no analytics, external fonts,
+- `launcher/`: undeployed 1.1 list candidate (installed 1.0 baseline is in Git history); no analytics, external fonts,
   autoplay player or remote image dependency. It uses normal Tizen app launching.
 - `helper/`: firmware-guarded one-shot Home route/restore helper and exact SQL.
 - `boot/`: adapted short-lived boot relay; installed package, inactive integration.
