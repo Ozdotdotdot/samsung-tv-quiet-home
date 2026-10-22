@@ -84,3 +84,23 @@ interval resource samples and running-service definitions. Brought already-runni
 Netflix forward with normal SDK execute, verified foreground and sampled resources.
 No root, service/setting changes, reboot or package operations. Visual/input feedback
 and controlled cold/warm timing remain pending; see PERFORMANCE.md for findings.
+
+## Netflix lag and first reversible service experiment — 2026-10-22
+
+Owner confirmed delayed Netflix navigation. A shorter successful resource sample
+showed high all-core CPU use, with Netflix the largest user-space process delta;
+this is exploratory, not a synchronized benchmark. One larger SDB request timed
+out, followed by successful small reads.
+
+Root read-only inspection verified current enabled recognition app rows and unit
+states. Temporary stop of canalysis-service and contents-recognition-service
+partially completed: contents recognition stopped, canalysis stayed in SIGTERM
+shutdown beyond the 30-second command deadline. No settings/package/startup flags
+changed. Requested original running states with nonblocking systemctl start;
+contents recognition resumed, canalysis restart waited on its 90-second stop
+window. Final readback is required before further experiments. Root sessions
+confirmed cleanup and unchanged baseline system-file hashes. See PERFORMANCE.md.
+
+Final independent readback: both services active/running again with empty Job
+fields (PIDs 3241 and 2851). Original runtime state restored. No permanent change
+remains from this test. No speed improvement established.

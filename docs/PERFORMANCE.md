@@ -120,3 +120,61 @@ readiness time or performance improvement is established.
 Raw samples remain in ignored backup/performance-*-sdk.txt. No permanent monitor
 was deployed. Next: confirm visible Netflix state and navigation response,
 then gather comparable cold/warm trials before testing reversible service groups.
+
+## Netflix navigation investigation — same maintenance window
+
+Owner confirmed Netflix was visible and navigation felt delayed. A requested
+navigation sampling command timed out through SDB with no saved output. A small
+read confirmed Netflix remained foregrounded. A shorter two-snapshot sample then
+completed: aggregate CPU busy excluding I/O wait was 85.8%, with per-core values
+82.7–87.9%. Netflix GIBBON_MAIN accrued seven CPU seconds and was the largest
+user-space process delta. This is an exploratory sample, with diagnostic overhead
+and no synchronized remote-key/video timeline; it does not establish causality,
+FPS or a repeatable launch baseline.
+
+Two read-only root sessions authenticated as UID 0, SMACK User, and confirmed
+cleanup and unchanged passwd/public.pem hashes. Read-only package queries found
+ACR, canalysis and two recognition database/vision app records enabled. The queried
+registry dependency subset returned no rows; that is not a full runtime dependency
+map. No nvision-analysis-dbmgr row matched on this TV. Both canalysis-service and
+contents-recognition-service were active, with no declared RequiredBy/BoundBy/
+PartOf dependencies and manual stopping permitted. UnitFileState was already
+'disabled' despite both running: unit enable state is not actual process state.
+
+A first temporary stop test targets only those two systemd services. Their original
+active states and unit definitions are in ignored private evidence. No package
+uninstall, package-disable flag, startup database or unit enable flag is changed.
+Exact runtime rollback is:
+
+```
+systemctl start canalysis-service.service contents-recognition-service.service
+```
+
+Run rollback in the same authorized root context and verify both ActiveState=active.
+Do not call this a complete ACR shutdown: the separate ACR app is outside this test.
+Final stop result and follow-up acceptance are recorded below after verification.
+
+The temporary-stop command timed out after 30 seconds (exit 124). Immediate SDK
+readback showed contents-recognition-service inactive/dead with MainPID=0, and
+canalysis-service still deactivating/stop-sigterm with PID 1726 and a pending stop
+job. Thus no clean disabled-group performance comparison was possible. Requested
+nonblocking start of both units to restore original running state; verify actual
+state before any further experiment. Root session cleanup and baseline hash checks
+passed even though the inner service command timed out. No speed/privacy gain
+is claimed from this partial transition.
+
+Final SDK readback confirmed successful restoration: canalysis-service active/
+running, new PID 3241; contents-recognition-service active/running, PID 2851;
+both Job fields empty. Its configured stop timeout is 90 seconds, longer than
+the command deadline. The stopped canalysis process was eventually replaced.
+No permanent change remains from this experiment. Future service tests must
+account for shutdown deadlines and verify state independently after timeouts.
+
+After restoration, a requested hands-off Netflix sample measured 34.4% aggregate
+CPU busy, compared with 85.8% in the earlier requested-navigation sample. Netflix
+accrued no whole CPU second in the idle interval; reclamation/recompression,
+adagent and vendor tasks accrued some CPU time. The coarse process timer and
+unsynchronized human input prevent a precise foreground/background attribution.
+These are workload observations, not before/after optimization results. Next
+priority: repeat controlled navigation and identify interval background CPU,
+including dependencies of adagent before considering any related control.
