@@ -17,7 +17,11 @@ class OwnerPackageControl {
   "com.samsung.tv.targeted-ad-service", "com.samsung.tv.pisa-service",
   "com.samsung.tv.adagent-service", "org.tizen.pisa-control-service",
   "com.samsung.tv.acr", "com.samsung.tv.canalysis-service",
-  "com.samsung.tv.vision-data-recognition-service", "com.samsung.tv.contents-recognition-dbmgr"
+  "com.samsung.tv.vision-data-recognition-service", "com.samsung.tv.contents-recognition-dbmgr",
+  "org.tizen.hbbtv", "org.tizen.hbbtv-service", "org.tizen.content-tiles-provider",
+  "org.tizen.multi-assistant-service", "com.samsung.tv.utterance-recommender-core",
+  "com.samsung.tv.action-planner-service", "com.samsung.tv.fuzzy-search-engine",
+  "org.tizen.welcome-mode", "com.samsung.tv.context-aware-service", "com.samsung.tv.context-aware-agent"
  };
  [DllImport("libc.so.6", SetLastError=true)] static extern int setgroups(UIntPtr size, IntPtr groups);
  [DllImport("libc.so.6", SetLastError=true)] static extern int setresgid(uint r,uint e,uint s);
