@@ -1,0 +1,29 @@
+[package]
+name = "quiet-slint-hello"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+# Wayland through winit with Slint's CPU renderer: no GL/EGL linkage, and
+# libwayland-client / libxkbcommon are dlopen'ed at runtime rather than linked.
+slint = { version = "1", default-features = false, features = ["std", "compat-1-2", "backend-winit-wayland", "renderer-software"] }
+
+# Not used directly: turns on dlopen for the fontconfig that Slint's font stack
+# pulls in, so the binary has no hard libfontconfig dependency. Fonts are embedded.
+fontique = { version = "0.11", features = ["fontconfig-dlopen"] }
+
+[features]
+# Desktop check only: render one frame offscreen with the same software renderer
+# and write it as a PPM (`--snapshot out.ppm`). The TV build never enables this.
+snapshot = []
+
+[build-dependencies]
+slint-build = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

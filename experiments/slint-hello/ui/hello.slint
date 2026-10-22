@@ -1,0 +1,94 @@
+// A one-screen probe in the Quiet Home "List" language: serif items, the focused
+// item at full opacity, the rest at 28%, one accent dot. Fonts are copied in by
+// build.sh so the binary does not depend on the TV's fontconfig.
+import "fonts/DejaVuSerif.ttf";
+import "fonts/DejaVuSans.ttf";
+
+export component Hello inherits Window {
+    in property <[string]> items;
+    in-out property <int> selected: 0;
+    in property <string> clock: "--:--";
+    in property <string> stats;
+    callback activate(int);
+    callback quit();
+
+    background: #0d0f12;
+    default-font-family: "DejaVu Sans";
+    title: "Quiet Slint Hello";
+
+    keys := FocusScope {
+        key-pressed(event) => {
+            if (event.text == Key.UpArrow) {
+                root.selected = max(0, root.selected - 1);
+                return accept;
+            }
+            if (event.text == Key.DownArrow) {
+                root.selected = min(root.items.length - 1, root.selected + 1);
+                return accept;
+            }
+            if (event.text == Key.Return) {
+                root.activate(root.selected);
+                return accept;
+            }
+            if (event.text == Key.Escape || event.text == Key.Backspace) {
+                root.quit();
+                return accept;
+            }
+            reject
+        }
+    }
+
+    Text {
+        x: parent.width * 7%;
+        y: parent.height * 9%;
+        text: "SLINT ON TIZEN";
+        color: #ece8e1;
+        opacity: 0.45;
+        font-size: parent.width * 1.1%;
+        letter-spacing: parent.width * 0.25%;
+    }
+
+    for item[i] in root.items: Rectangle {
+        x: root.width * 7%;
+        y: root.height * 13% + i * root.width * 4.7%;
+        width: root.width * 50%;
+        height: root.width * 4.7%;
+
+        if i == root.selected: Rectangle {
+            x: -root.width * 2.5%;
+            y: (parent.height - self.height) / 2;
+            width: root.width * 0.9%;
+            height: self.width;
+            border-radius: self.width / 2;
+            background: #e8b86a;
+        }
+        Text {
+            x: 0;
+            text: item;
+            font-family: "DejaVu Serif";
+            font-size: root.width * 3.6%;
+            color: #ece8e1;
+            opacity: i == root.selected ? 1.0 : 0.28;
+            vertical-alignment: center;
+            animate opacity { duration: 120ms; }
+        }
+    }
+
+    Text {
+        x: parent.width - self.width - parent.width * 7%;
+        y: parent.height * 9%;
+        text: root.clock;
+        font-size: parent.width * 7%;
+        font-weight: 300;
+        color: #ece8e1;
+    }
+
+    // Probe output: startup time and memory, so the first TV run reports itself.
+    Text {
+        x: parent.width * 7%;
+        y: parent.height - self.height - parent.height * 6%;
+        text: root.stats;
+        font-size: parent.width * 1.0%;
+        color: #8d8a84;
+    }
+}
