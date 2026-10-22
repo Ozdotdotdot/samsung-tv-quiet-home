@@ -76,3 +76,11 @@ newer Tizen 9 root/debloat project. Saved hypotheses, compatibility limits and a
 bounded before/after protocol in PERFORMANCE.md. No on-TV speedup claimed, no
 service disabled, no monitoring agent installed and no TV contacted. Optimization
 of foreground streaming apps is now the next measurement priority alongside Home.
+
+## Performance maintenance window opened — 2026-10-22
+
+Owner confirmed father finished watching. SDB connected; collected initial and
+interval resource samples and running-service definitions. Brought already-running
+Netflix forward with normal SDK execute, verified foreground and sampled resources.
+No root, service/setting changes, reboot or package operations. Visual/input feedback
+and controlled cold/warm timing remain pending; see PERFORMANCE.md for findings.

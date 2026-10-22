@@ -85,3 +85,38 @@ If measured gains are insufficient and Netflix remains limited by its own UI on
 this hardware, an external streaming device is the practical way to move that
 work onto a different processor. No product selection or purchase is proposed
 here. First determine what this TV can achieve with measured reversible changes.
+
+## First authorized device baseline — 2026-10-22, approximately 18:47 EDT
+
+Owner confirmed the TV was free. Connected through SDB and took bounded SDK
+samples; no root session, service changes, cache deletion or reboot in this pass.
+Firmware file still reports T-KSU2EAKUC-2301.1; keep the earlier owner-reported
+2391.1 discrepancy open. Quiet Home was the initial foreground app.
+
+Initial resources: MemTotal 1,112,840 kB, MemAvailable 284,424 kB; swap used
+674,044 kB of 788,716 kB. The main zram device reported 641,380 kB original data,
+203,616 kB compressed data and 210,296 kB actual memory used. Swap allocation
+alone does not prove current thrashing. /opt was 58% used, with 1,716,000 kB
+available. No storage cleanup justified by this snapshot.
+
+The initial load average was about 35, but a following interval was only 18.6%
+busy across four CPUs, excluding I/O wait. Many vendor kernel tasks were in
+D state; do not interpret load as runnable CPU demand. This does not establish
+why those tasks wait. Lifetime CPU rankings included kswapd0 and bgrecompd;
+those rankings are not current interval utilization. The exposed vmstat has
+limited counters and did not include the usual pswpin/pswpout/pgmajfault fields.
+One frequency reading was 1,350,000 kHz, equal to exposed scaling_max_freq;
+thermal_zone0 read 69,724. Neither isolated reading proves thermal throttling.
+
+122 service units were running. Unit definitions for analysis/recognition
+services were readable; no service was selected for disabling yet.
+Netflix was already running as PID 3263. Normal SDK execute brought that same
+process forward; native foreground read confirmed org.tizen.netflix-app. The
+next bounded interval was 41.8% busy, with roughly 302,000 kB available memory.
+This sampled foreground CPU, not a controlled navigation benchmark or per-core
+saturation test. Owner visual/input feedback is pending. No cold-start, visible
+readiness time or performance improvement is established.
+
+Raw samples remain in ignored backup/performance-*-sdk.txt. No permanent monitor
+was deployed. Next: confirm visible Netflix state and navigation response,
+then gather comparable cold/warm trials before testing reversible service groups.
