@@ -108,6 +108,12 @@ Single uncontrolled samples (Netflix still resident in background); not a speed
 claim. Load average stays ~32, which on this kernel reflects blocked tasks rather
 than CPU saturation.
 
+## Owner acceptance after recognition + advertising groups
+
+Owner confirmed: Netflix plays; scrolling "maybe feels better" (subjective, not
+measured); NBC News via TV Plus works; Samsung app store opens. Ad-service
+removal did not break TV Plus playback.
+
 ## Rollback for recognition + advertising groups
 
 As root (via scripts/tv-root.py with the namespace prefix used in lean-voice-apply):
@@ -128,5 +134,5 @@ is excluded from performance comparisons; overlapping SDB work also contaminated
 that preflight's timing check, so it failed before staging and was rerun alone.
 Do not run profilers/SDB jobs concurrently with root preflight or final samples.
 
-Pending: post-change core-app/news(TV Plus)/store checks,
+Pending:
 controlled idle samples, persistence verification and final recovery review.
