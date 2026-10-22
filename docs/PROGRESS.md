@@ -68,3 +68,11 @@ and no device tracing was enabled. On-TV before/after timings remain pending.
 Samsung's Virtual Tune-In documentation confirms provider/service-ID targeting
 inside its TV UI; no AU8000 NBC appcontrol payload has been verified. See
 `design/README.md` and `design/NBC-ROUTING.md`.
+
+## App-performance research — 2026-10-22
+
+Reviewed primary-source Tizen projects, including Vetro's Tizen 6 evidence and a
+newer Tizen 9 root/debloat project. Saved hypotheses, compatibility limits and a
+bounded before/after protocol in PERFORMANCE.md. No on-TV speedup claimed, no
+service disabled, no monitoring agent installed and no TV contacted. Optimization
+of foreground streaming apps is now the next measurement priority alongside Home.
