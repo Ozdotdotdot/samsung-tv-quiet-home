@@ -104,3 +104,14 @@ confirmed cleanup and unchanged baseline system-file hashes. See PERFORMANCE.md.
 Final independent readback: both services active/running again with empty Job
 fields (PIDs 3241 and 2851). Original runtime state restored. No permanent change
 remains from this test. No speed improvement established.
+
+## Voice feature control investigation — 2026-10-22
+
+Owner confirmed no voice features are used. Package-disable controls rejected three
+voice targets. Guarded startup-field changes for two apps did not stop respawns;
+restored exact original fields and verified. Native Bixby viewer process stop
+worked; viewer stays installed/enabled. Provider and on-device voice are running
+again. Identified firmware path-unit launch triggers. Copied amd/libamd for offline
+analysis; REA connected, but a native decompiler is unavailable. No engine install,
+unit/marker change, reboot or DNS change. All root sessions checked cleanup and
+original system-file hashes. Full results in experiments/README.md.

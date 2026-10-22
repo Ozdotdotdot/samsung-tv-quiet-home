@@ -178,3 +178,13 @@ unsynchronized human input prevent a precise foreground/background attribution.
 These are workload observations, not before/after optimization results. Next
 priority: repeat controlled navigation and identify interval background CPU,
 including dependencies of adagent before considering any related control.
+
+## Voice control trials — 2026-10-22
+
+Owner confirmed voice features are unused. Tested native app-disable, targeted
+startup fields and native process termination for a small group. Disable requests
+were rejected; startup fields changed but did not prevent immediate respawns, and
+were restored and verified. Bixby viewer remains closed only; no persistent voice
+suppression or speedup is established. Firmware path-unit launch triggers were
+identified. See experiments/README.md for exact actions, results, rollback, copied
+artifact identities and the limits of the available offline analysis tools.

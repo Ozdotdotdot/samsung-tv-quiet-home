@@ -95,3 +95,10 @@ Then validate physical Home, Samsung fallback, News access, all six apps and
 store use, followed separately by cold boot and standby/resume. Only after those
 pass evaluate cleanup in small recorded groups. Keep an exact rollback and show
 what changed, what was measured and what remains unknown.
+
+## Owner clarification — 2026-10-22
+
+No remote microphone searches, voice assistants or spoken accessibility features
+are used. Unused assistant components can be investigated for reversible removal
+from background work. Preserve ordinary remote controls and text-to-speech; do
+not treat this as permission to remove shared media, input or account services.
