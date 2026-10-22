@@ -14,5 +14,7 @@ def capture_legacy(client,command,timeout=15):
  return capture(client,command,timeout)
 archive_root._capture=capture_legacy
 payloads=root/'tools/root-release/samsung-tv-root-0.0.9-linux-x86_64/_internal/payloads/common31'
-result=asyncio.run(archive_root.probe(os.environ['TV_HOST'],callback_host=os.environ['TV_CALLBACK_HOST'],sdb_timeout=20,accept_timeout=25,command_timeout=30,commands=tuple(sys.argv[1:]),payloads=payloads))
+command_timeout=float(os.environ.get('TV_COMMAND_TIMEOUT','30'))
+if not 5 <= command_timeout <= 180: raise ValueError('TV_COMMAND_TIMEOUT must be between 5 and 180 seconds')
+result=asyncio.run(archive_root.probe(os.environ['TV_HOST'],callback_host=os.environ['TV_CALLBACK_HOST'],sdb_timeout=20,accept_timeout=25,command_timeout=command_timeout,commands=tuple(sys.argv[1:]),payloads=payloads))
 print(json.dumps(result,indent=2))
