@@ -1,0 +1,25 @@
+# Device evidence, credentials, signing identities and signed installers stay local.
+backup/
+tools/
+.local/
+*.p12
+*.pem
+*.key
+*.wgt
+*.tpk
+**/bin/
+**/obj/
+**/out/
+**/__pycache__/
+.env
+# Downloaded upstream references and early private notes are not project source.
+docs/adguard-openapi.yaml
+docs/*-upstream.*
+docs/TV-PLAN.md
+
+docs/root-release.json
+
+# Generated signing/build files
+**/.manifest.tmp
+**/author-signature.xml
+**/signature[0-9].xml

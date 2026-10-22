@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://tizen.org/ns/packages" package="OzQuietBoot" version="1.0.0" api-version="6.0">
+ <profile name="tv-samsung"/>
+ <ui-application appid="OzQuietBoot.Start" exec="Boot.dll" type="dotnet" multiple="false" nodisplay="true" taskmanage="false"><label>Quiet Home Boot</label></ui-application>
+ <privileges><privilege>http://tizen.org/privilege/appmanager.launch</privilege></privileges>
+</manifest>
