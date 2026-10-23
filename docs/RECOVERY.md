@@ -42,3 +42,21 @@ DNS service/config remains separately at `/home/ozair/services/samsung-tv-dns`.
 It was stopped at the user's request. Its generated admin credential and query
 logs are not in Git. If the TV was manually pointed there later, restore automatic
 DNS before leaving that service stopped.
+
+## Recovery notes after the 2310.0 update (2026-10-22)
+
+- The root bootstrap was re-run on `T-KSU2EAKUC-2310.0` and still returns uid 0
+  with unchanged original system-file hashes. The staged helper and the boot
+  relay pin were moved to 2310.0; only the helper DLL was rebuilt. The boot tpk
+  still needs a rebuild before it can run on this firmware.
+- Launcher rollback: install `backup/Quiet-Home-1.0.0.wgt` (six-tile build) over
+  1.1.0. The working signing profile is `backup/profiles.xml`; the saved
+  `backup/signing-password` does not open `quiet-home.p12`.
+- Remote reboot: `systemctl reboot` fails because `reboot.target` is absent.
+  Use the `reboot` syscall through `scripts/tv-root.py`. SDB must be reconnected
+  after the TV returns: `tools/tizen-tools/sdb connect 192.168.86.208:26101`.
+- Firmware update rollback: remove `/mnt/backup/OS_UPGRADE_FLAG` and re-enable
+  `swu-auto-upgrade.service`/`.timer` to allow updates again.
+- Boot reconciler rollback: disable user timer `samsung-tv-reconcile.timer`,
+  then `systemctl unmask --runtime contents-recognition-service.service
+  media-analytics-service.service` on the TV and reboot.

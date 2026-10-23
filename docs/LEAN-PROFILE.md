@@ -1,7 +1,9 @@
 # AU8000 lean profile — maintenance in progress, 2026-10-22
 
-Applies only to the inspected T-KSU2EAKUC-2301.1 firmware. The owner previously
-reported 2391.1 from the UI; the firmware-file discrepancy remains documented.
+Applies only to the inspected **T-KSU2EAKUC-2310.0** firmware (updated
+2026-10-22; the earlier work in this document was first validated on 2301.1).
+The owner previously reported 2391.1 from the UI; the firmware-file discrepancy
+remains documented.
 No firmware flashing, overclocking, governor changes, cache wipes or DNS filtering.
 No packages are uninstalled. Keep streaming, TV Plus/news/viewer, store, accounts,
 DRM, media, network/time, ordinary remote/input and text-to-speech intact.
@@ -136,3 +138,58 @@ Do not run profilers/SDB jobs concurrently with root preflight or final samples.
 
 Pending:
 controlled idle samples, persistence verification and final recovery review.
+
+## Cleanup group — applied 2026-10-22, verified after reboot
+
+Ten more app records disabled with owner-scoped `pkgcmd`; all read back
+`app_disable=true` after the 19:57 reboot:
+
+- org.tizen.hbbtv
+- org.tizen.hbbtv-service
+- org.tizen.content-tiles-provider
+- org.tizen.multi-assistant-service
+- com.samsung.tv.utterance-recommender-core
+- com.samsung.tv.action-planner-service
+- com.samsung.tv.fuzzy-search-engine
+- org.tizen.welcome-mode
+- com.samsung.tv.context-aware-service
+- com.samsung.tv.context-aware-agent
+
+Their processes were absent before and after the reboot. The two context-aware
+units also have boot markers in `/opt/usr/share/systemd/system/` and stay
+inactive. `content-tiles-provider` was the one to watch because the owner's
+father reaches NBC through Samsung Home; the owner reached NBC successfully
+after the change, so that row did not disappear.
+
+Rollback per app: `OwnerPackageControl enable APP_ID`, then read back
+`package_app_info.app_disable`.
+
+## Firmware updates blocked
+
+- `/mnt/backup/OS_UPGRADE_FLAG` created; `swu-auto-upgrade.service` and
+  `swu-auto-upgrade.timer` stopped and disabled.
+- This is deliberately blunt: it may also refuse a manual USB update until the
+  flag is removed. Remove the flag and re-enable the units to restore updates.
+- OTA upgrade binaries are untouched; nothing was uninstalled.
+
+## Boot reconciler for runtime-only daemons
+
+`contents-recognition-service` and `media-analytics-service` have no marker
+file, so they were runtime-masked on the TV
+(`/run/systemd/system/<unit> -> /dev/null`). Since that is lost on reboot, a
+server-side reconciler re-applies it:
+
+- Server `192.168.86.148`: `/home/ozair/services/samsung-tv-maintenance/reconcile.py`
+- User units `samsung-tv-reconcile.service` / `.timer`, enabled;
+  `OnBootSec=2min`, then every 5 min.
+- State in `state.json`; log in `reconcile.log`.
+
+Verified after the 19:57 reboot: the timer detected boot id
+`df6d576e-4f4d-4d07-ae1e-82fedd281fe2` and re-applied the mask at 20:01:37.
+`media-analytics-service` shows `failed`/`masked-runtime` because it starts at
+boot and is stopped a few minutes later; it cannot restart while masked. The
+reconciler tolerates transient SDB contention (it logged `boot id unavailable`
+twice during capture work, then recovered).
+
+Rollback: disable the user timer, `systemctl unmask --runtime` both units on the
+TV, then reboot or start them.

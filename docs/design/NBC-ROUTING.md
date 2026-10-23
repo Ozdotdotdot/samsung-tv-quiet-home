@@ -64,3 +64,54 @@ NBC**. The new launcher has not been installed or tested on the TV.
 Capturing the payload is a feasible investigation, not a guarantee: normal logs
 may omit it and SMACK can restrict observation even with UID 0. If native tracing
 or injected hooks become necessary, assess that concrete method before using it.
+
+## Verified on 2026-10-22 — decompiled deeplinker + one live capture
+
+The TV was free for one short capture. The findings below supersede the earlier
+"Proposed bounded capture" assumptions where they conflict.
+
+### What the installed deeplinker actually requires
+
+`com.samsung.tv.tvPlusDeeplinker` (v0.1.86, `nodisplay=true`) was copied
+read-only and decompiled with ILSpy. Its entry point does not accept a bare
+launch: `OnAppControlReceived` calls `OnExitApp()` unless the app-control
+carries a `PAYLOAD` extra.
+
+- `type=CH`: `PAYLOAD` is `"<provider_id>_<service_id>"`; the code splits on the
+  first `_`.
+- Otherwise `PAYLOAD` is JSON with `values.tune_data.provider_id` +
+  `values.tune_data.service_id`, or `values.deeplink_data`, plus optional
+  `type` (`detail`/`CH`), `request_ready` and `callerid`.
+- It maps provider/service to a `TCServiceId` via the TV Plus API, then launches
+  `org.tizen.tv-viewer` with operation `http://tizen.org/appcontrol/operation/view`
+  and extra `svcid=<TCServiceId>`.
+- `HEPsqFNie0.tvplusstandalone` is not installed, so the standalone path is off;
+  the TV-service/HbbTV path is used.
+
+That means the deeplinker is optional for our launcher: a direct app-control to
+`org.tizen.tv-viewer` with `svcid` is the real tune primitive. The missing piece
+is the `TCServiceId` for NBC News NOW on this TV.
+
+### Why the first capture did not reveal the ID
+
+While the owner selected NBC News in Samsung Home, a 150 s watcher sampled
+`/proc` for new `tvPlusDeeplinker` / `tvplus` / `tv-viewer` processes and polled
+the foreground app. Results:
+
+- Foreground changed to `org.tizen.tv-viewer` and NBC played.
+- No new deeplinker or TV Plus process appeared. The stock Home tunes through
+  the already-running native TV service, not via an app launch.
+- `dlogutil` produced only its startup banner (2 lines). TV logging is compiled
+  out, so the deeplinker's own `TCServiceId : …` log is unavailable.
+- The menu capture was equally opaque: `org.tizen.menu` is long-running
+  (pid 336), so opening Settings reuses it.
+
+### Consequence
+
+Do not infer the ID from the visible channel number. `1114` is the public US
+lineup number, not a verified `TCServiceId`. The next bounded step is to read
+the current channel through Samsung's TV web API
+(`webapis.tv.channel.getCurrentChannel()`) from our own app after NBC is opened,
+then replay `svcid` once with panel confirmation. The D-Bus
+`com.samsung.IServiceNavigation` `MethodCall(functionCode, size, buffer)` surface
+is the fallback for querying the current service.

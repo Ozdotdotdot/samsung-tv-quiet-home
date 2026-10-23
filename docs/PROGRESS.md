@@ -115,3 +115,42 @@ again. Identified firmware path-unit launch triggers. Copied amd/libamd for offl
 analysis; REA connected, but a native decompiler is unavailable. No engine install,
 unit/marker change, reboot or DNS change. All root sessions checked cleanup and
 original system-file hashes. Full results in experiments/README.md.
+
+## Firmware 2310.0, reboot test and launcher defect — 2026-10-22 evening
+
+Root was re-verified on `T-KSU2EAKUC-2310.0`; the helper and both native pins
+were moved to 2310.0 and the helper timeout raised to 60 s. Owner accepted the
+update block and the cleanup round.
+
+Applied and verified after a real reboot (boot id
+`df6d576e-4f4d-4d07-ae1e-82fedd281fe2`, 19:57):
+
+- `/mnt/backup/OS_UPGRADE_FLAG`; `swu-auto-upgrade` stopped/disabled.
+- All 10 cleanup app flags `true`; all cleanup processes absent.
+- context-aware markers present; both units inactive.
+- Server reconciler detected the new boot and runtime-masked
+  contents-recognition and media-analytics at 20:01:37.
+- Quiet Home 1.1.0 files present and launching.
+
+Owner reported that the launcher's **TV Settings**, **NBC News** and **Live news
+channels** buttons do nothing, while Samsung Home/Apps and the streaming apps
+work. Root causes established:
+
+- `com.samsung.tv.coba.setting` is a CoBA *component*, not a UI app: its exec DLL
+  has no entry point (`support-fs-external-component=true`). The real menu is
+  `org.tizen.menu`.
+- `com.samsung.tv.tvPlusDeeplinker` is a `nodisplay` router that exits unless the
+  launch carries a `PAYLOAD` app-control extra. Decompiled contract: `type=CH`
+  uses `provider_id_service_id`; otherwise JSON with `values.tune_data` /
+  `values.deeplink_data`. It resolves a `TCServiceId` and launches
+  `org.tizen.tv-viewer` with `svcid`.
+
+A 150 s live capture while the owner tapped NBC produced only the expected
+`org.tizen.tv-viewer` foreground change; no deeplinker process and no log output
+(TV logging is compiled out). The missing datum is the TV Plus `TCServiceId` for
+NBC on this TV. Next bounded step is reading the current channel via Samsung's
+TV web API from the launcher and replaying `svcid`; details and ranked fallbacks
+are in `HANDOFF.md` and `docs/design/NBC-ROUTING.md`.
+
+No launcher change was made in this session because the IDs are unverified. The
+TV was handed back to the owner's father; no further writes until a new go-ahead.

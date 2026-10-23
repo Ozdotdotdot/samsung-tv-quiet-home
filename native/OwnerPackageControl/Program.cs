@@ -32,7 +32,7 @@ class OwnerPackageControl {
   try {
    if(args.Length!=2 || (args[0]!="disable" && args[0]!="enable") || !Allowed.Contains(args[1]))
     throw new Exception("Use enable/disable with an explicitly allowed optional app ID");
-   if(!File.ReadAllText("/etc/prd_info.ini").Contains("Version=T-KSU2EAKUC-2301.1;"))
+   if(!File.ReadAllText("/etc/prd_info.ini").Contains("Version=T-KSU2EAKUC-2310.0;"))
     throw new Exception("Unexpected firmware");
    if(getuid()!=0 || geteuid()!=0) throw new Exception("Root parent required to select owner identity");
    if(setgroups(UIntPtr.Zero,IntPtr.Zero)!=0 || setresgid(100,100,100)!=0 || setresuid(5001,5001,5001)!=0)
@@ -42,7 +42,7 @@ class OwnerPackageControl {
    var start=new ProcessStartInfo("/usr/bin/pkgcmd") { UseShellExecute=false };
    foreach(var a in new[]{args[0]=="disable"?"-D":"-A","-t","app","-n",args[1],"--global"}) start.ArgumentList.Add(a);
    using(var p=Process.Start(start)) {
-    if(!p.WaitForExit(20000)) { p.Kill(); throw new Exception("Package command timed out; inspect flags before retrying"); }
+    if(!p.WaitForExit(60000)) { p.Kill(); throw new Exception("Package command timed out; inspect flags before retrying"); }
     return p.ExitCode;
    }
   } catch(Exception e) { Console.Error.WriteLine(e.Message); return 1; }
