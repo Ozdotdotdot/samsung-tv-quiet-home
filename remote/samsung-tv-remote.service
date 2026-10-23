@@ -1,0 +1,17 @@
+[Unit]
+Description=Quiet Remote — LAN web remote for the AU8000
+Documentation=file:/home/ozair/.t3/scratch/2026-10-22-continuing-a-samsung-tv-project-db7b7124/docs/REMOTE-WEB.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ozair/.t3/scratch/2026-10-22-continuing-a-samsung-tv-project-db7b7124/remote
+ExecStart=/usr/bin/python3 /home/ozair/.t3/scratch/2026-10-22-continuing-a-samsung-tv-project-db7b7124/remote/server.py
+Environment=REMOTE_PORT=8099
+# Set REMOTE_BIND=127.0.0.1 to keep it off the LAN (reach it via an SSH tunnel instead).
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

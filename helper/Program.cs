@@ -63,7 +63,7 @@ class HomeRoute {
   Console.WriteLine("One native Home key submitted");
  }
  static int Main(string[] args) {
-  if(!File.ReadAllText("/etc/prd_info.ini").Contains("Version=T-KSU2EAKUC-2301.1;"))throw new Exception("Unexpected firmware");
+  if(!File.ReadAllText("/etc/prd_info.ini").Contains("Version=T-KSU2EAKUC-2310.0;"))throw new Exception("Unexpected firmware");
   foreach(string line in File.ReadLines("/proc/self/status"))
    if(line.StartsWith("Uid:") || line.StartsWith("Gid:")) Console.WriteLine(line);
   if(getuid() != 0) { Console.WriteLine("Owner baseline: no action"); return 0; }

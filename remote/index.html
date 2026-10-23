@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101216">
+<title>Quiet Remote</title>
+<style>
+  :root{
+    --bg:#0d0f13; --panel:#171a20; --panel-2:#1f232b; --line:#2a2f39;
+    --ink:#eef1f6; --muted:#8b93a2; --accent:#4da3ff; --danger:#ff5a5a;
+    --ok:#39d98a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:radial-gradient(1200px 600px at 50% -10%,#1a2030,#0d0f13 60%);
+    color:var(--ink); font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    -webkit-user-select:none; user-select:none;
+  }
+  .remote{width:100%; max-width:340px}
+  header{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px}
+  header h1{font-size:15px; font-weight:600; letter-spacing:.4px; margin:0; color:var(--muted); text-transform:uppercase}
+  .status{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted)}
+  .dot{width:9px; height:9px; border-radius:50%; background:#555; transition:background .2s}
+  .dot.on{background:var(--ok); box-shadow:0 0 8px rgba(57,217,138,.7)}
+  .dot.off{background:var(--danger)}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:22px; padding:18px; box-shadow:0 20px 50px rgba(0,0,0,.45)}
+  .grid{display:grid; gap:12px}
+  button{
+    appearance:none; border:1px solid var(--line); background:linear-gradient(180deg,var(--panel-2),#191d24);
+    color:var(--ink); border-radius:16px; padding:15px 10px; font:600 15px inherit; cursor:pointer;
+    transition:transform .06s ease, background .12s ease, border-color .12s ease;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+  }
+  button:hover{border-color:#3a4150}
+  button:active,button.pressed{transform:scale(.96); background:#2b313c; border-color:var(--accent)}
+  .vol{grid-template-columns:1fr 1fr 1fr}
+  .vol button{padding:14px 6px}
+  .pad{grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:10px; margin-top:12px}
+  .pad button{aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:20px; padding:0}
+  .pad .ok{border-radius:50%; background:linear-gradient(180deg,#242a34,#1b1f27); font-size:15px}
+  .pad .spacer{visibility:hidden}
+  .power{border-color:#5a2a2a; color:#ffb4b4; background:linear-gradient(180deg,#2a1c1c,#201617)}
+  .power:active,.power.pressed{border-color:var(--danger); background:#3a2020}
+  .row2{grid-template-columns:1fr 1fr; margin-top:12px}
+  .hint{margin-top:14px; font-size:12px; color:var(--muted); text-align:center; line-height:1.5}
+  .hint a{color:var(--accent); text-decoration:none}
+  #toast{
+    position:fixed; left:50%; bottom:26px; transform:translate(-50%,20px); opacity:0;
+    background:#20262f; border:1px solid var(--line); color:var(--ink);
+    padding:10px 18px; border-radius:999px; font-size:13px; pointer-events:none;
+    transition:opacity .18s, transform .18s; max-width:90vw; text-align:center;
+  }
+  #toast.show{opacity:1; transform:translate(-50%,0)}
+  #toast.err{border-color:var(--danger); color:#ffc9c9}
+  kbd{font:inherit}
+</style>
+</head>
+<body>
+<main class="remote">
+  <header>
+    <h1>Quiet Remote</h1>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">checking…</span></div>
+  </header>
+
+  <section class="card" aria-label="TV remote">
+    <div class="grid vol">
+      <button data-key="vol_up" aria-label="Volume up">Vol +</button>
+      <button data-key="mute" aria-label="Mute">Mute</button>
+      <button data-key="vol_down" aria-label="Volume down">Vol −</button>
+    </div>
+
+    <div class="grid pad">
+      <span class="spacer"></span>
+      <button data-key="up" aria-label="Up">▲</button>
+      <span class="spacer"></span>
+      <button data-key="left" aria-label="Left">◀</button>
+      <button data-key="enter" class="ok" aria-label="OK">OK</button>
+      <button data-key="right" aria-label="Right">▶</button>
+      <span class="spacer"></span>
+      <button data-key="down" aria-label="Down">▼</button>
+      <span class="spacer"></span>
+    </div>
+
+    <div class="grid row2">
+      <button data-key="back" aria-label="Back">‹ Back</button>
+      <button data-key="home" aria-label="Home">⌂ Home</button>
+    </div>
+
+    <div class="grid row2">
+      <button data-key="power" class="power" aria-label="Power">⏻ Power</button>
+      <button data-key="exit" aria-label="Exit">Exit</button>
+    </div>
+  </section>
+
+  <p class="hint" id="hint"></p>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  var dot=document.getElementById('dot'), statusText=document.getElementById('statusText');
+  var toast=document.getElementById('toast'), hint=document.getElementById('hint');
+  var busy=false, toastTimer=0;
+
+  var LABELS={
+    power:'Power', vol_up:'Volume +', vol_down:'Volume −', mute:'Mute',
+    up:'Up', down:'Down', left:'Left', right:'Right', enter:'OK',
+    back:'Back', home:'Home', exit:'Exit'
+  };
+
+  function say(text, isError){
+    toast.textContent=text; toast.className='show'+(isError?' err':'');
+    clearTimeout(toastTimer); toastTimer=setTimeout(function(){toast.className='';},1400);
+  }
+
+  function setStatus(state){
+    if(!state.reachable){ dot.className='dot off'; statusText.textContent='TV off / unreachable'; }
+    else if(!state.paired){ dot.className='dot'; statusText.textContent='not paired'; }
+    else { dot.className='dot on'; statusText.textContent=(state.power==='on'?'TV on':'TV '+state.power); }
+    if(!state.paired){
+      hint.innerHTML='First use needs a one-time pairing: run <b>server.py --pair</b> (or press a button) and choose <b>Allow</b> on the TV.';
+    } else {
+      hint.textContent=state.model?state.model+' · '+state.ip:'';
+    }
+  }
+
+  function refresh(){
+    fetch('/api/status',{cache:'no-store'}).then(function(r){return r.json();})
+      .then(setStatus).catch(function(){ dot.className='dot off'; statusText.textContent='server error'; });
+  }
+
+  function press(key, button){
+    if(busy) return;
+    busy=true; if(button) button.classList.add('pressed');
+    fetch('/api/key',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({key:key})})
+      .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+      .then(function(res){
+        if(res.ok){ say(LABELS[key]||key); }
+        else { say(res.d.error||'failed', true); }
+        refresh();
+      })
+      .catch(function(){ say('server unreachable', true); })
+      .finally(function(){ busy=false; if(button) setTimeout(function(){button.classList.remove('pressed');},120); });
+  }
+
+  var buttons=document.querySelectorAll('button[data-key]');
+  for(var i=0;i<buttons.length;i++){
+    (function(b){ b.addEventListener('click', function(){ press(b.getAttribute('data-key'), b); }); })(buttons[i]);
+  }
+
+  var KEYMAP={
+    ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right',
+    Enter:'enter', Backspace:'back', Escape:'back', h:'home', H:'home',
+    '+':'vol_up', '=':'vol_up', '-':'vol_down', '_':'vol_down', m:'mute', M:'mute', p:'power', P:'power'
+  };
+  document.addEventListener('keydown', function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var key=KEYMAP[e.key]; if(!key) return;
+    e.preventDefault();
+    press(key, document.querySelector('button[data-key="'+key+'"]'));
+  });
+
+  refresh();
+  setInterval(refresh, 15000);
+})();
+</script>
+</body>
+</html>
