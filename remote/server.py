@@ -33,6 +33,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+import warnings
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 TV_HOST = os.environ.get("TV_HOST", "192.168.86.208")
@@ -151,13 +152,36 @@ class TVRemote:
         except OSError:
             pass
 
+    @staticmethod
+    def _tls_context() -> ssl.SSLContext:
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        try:  # tolerate an old self-signed vhost if a set only offers legacy TLS
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", DeprecationWarning)
+                context.minimum_version = ssl.TLSVersion.TLSv1
+        except (ValueError, AttributeError):
+            pass
+        try:
+            context.set_ciphers("ALL:@SECLEVEL=0")
+        except ssl.SSLError:
+            pass
+        return context
+
     def _open(self, secure: bool, timeout: float) -> socket.socket:
         port = 8002 if secure else 8001
         raw = socket.create_connection((self.host, port), timeout=timeout)
         if not secure:
             return raw
-        context = ssl._create_unverified_context()
-        return context.wrap_socket(raw, server_hostname=self.host)
+        return self._tls_context().wrap_socket(raw, server_hostname=self.host)
+
+    def _port_open(self, port: int, timeout: float = 2.0) -> bool:
+        try:
+            with socket.create_connection((self.host, port), timeout=timeout):
+                return True
+        except OSError:
+            return False
 
     def _handshake(self, sock: socket.socket, port: int, token: str | None) -> None:
         path = WS_PATH + "?name=" + base64.b64encode(APP_NAME.encode()).decode()
@@ -200,12 +224,21 @@ class TVRemote:
         )
 
     def exchange(self, aliases: list[str], timeout: float = 12.0) -> dict:
-        """Send one press per alias. Raises on failure. Returns pairing state."""
+        """Send one press per alias. Raises on failure. Returns pairing state.
+
+        The Allow prompt and the token flow exist only on the secure 8002
+        channel. A TokenAuthSupport TV rejects a token-less connect on the plain
+        8001 channel with a bare ms.channel.unauthorized and never prompts, so
+        8002 is tried first when reachable and a denial there falls through to
+        8001 instead of giving up.
+        """
         frames = [self._frame(KEYS[alias]) for alias in aliases]
-        token = self._read_token()
         last_error: Exception | None = None
+        denied = 0
         with self._lock:
-            for secure in (False, True):
+            token = self._read_token()
+            ports = [True, False] if self._port_open(8002) else [False, True]
+            for secure in ports:
                 try:
                     sock = self._open(secure, timeout)
                 except OSError as error:
@@ -237,31 +270,38 @@ class TVRemote:
                                 self._write_token(token)
                             connected = True
                             break
-                        if event == "ms.channel.unauthorized":
+                        if event == "ms.channel.unauthorized" or (
+                            event == "ms.error"
+                            and "authoriz"
+                            in str((message.get("data") or {}).get("message", "")).lower()
+                        ):
+                            denied += 1
                             if token:
                                 self._forget_token()
-                                raise PermissionError(
-                                    "stored token rejected; pair again from the page"
-                                )
-                            raise PermissionError("TV denied the pairing request")
+                                token = None
+                            break
                     if not connected:
-                        raise TimeoutError("no connect event from the TV")
+                        if denied == 0:
+                            last_error = TimeoutError("no connect event from the TV")
+                        continue
                     for frame in frames:
                         sock.sendall(_encode_frame(frame.encode()))
                     if frames:
                         time.sleep(0.25)
                     sock.sendall(_encode_frame(b"", 0x8))
                     return {"ok": True, "paired": bool(token), "secure": secure}
-                except (ConnectionError, OSError, TimeoutError, PermissionError) as error:
+                except (ConnectionError, OSError, TimeoutError) as error:
                     last_error = error
-                    if isinstance(error, PermissionError):
-                        raise
                     continue
                 finally:
                     try:
                         sock.close()
                     except OSError:
                         pass
+        if denied:
+            raise PermissionError(
+                "the TV refused the connection without prompting on any channel"
+            )
         raise last_error or ConnectionError("remote API unavailable")
 
 

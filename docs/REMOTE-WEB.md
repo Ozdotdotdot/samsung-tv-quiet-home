@@ -1,7 +1,9 @@
 # Quiet Remote — LAN web remote for the AU8000
 
-Status: built 2026-10-22. **Not yet paired or exercised on the TV.** Starting
-the service is inert; it makes no TV contact until you pair or press a button.
+Status: built 2026-10-22. **Paired** on the AU8000 (2026-10-22, over the
+secure 8002 channel); individual buttons are still candidates until confirmed
+on the TV. Starting the service is inert; it makes no TV contact until you pair
+or press a button.
 
 ## What it is
 
@@ -59,12 +61,29 @@ The first connection makes the TV show an **Allow** prompt. The TV returns a
 token, which is stored so later presses do not prompt again.
 
 - Run `--pair`, or just press a button on the page.
-- The token is what makes this silent afterwards; deleting
-  `/home/ozair/services/samsung-tv-remote/token` forces re-pairing.
-- If the TV rejects a stored token, the server deletes it and reports
-  `stored token rejected; pair again`.
+- Paired successfully on this AU8000 on 2026-10-22; the token is stored at
+  `/home/ozair/services/samsung-tv-remote/token`.
+- The token is what makes this silent afterwards; deleting that file forces
+  re-pairing.
+- If the TV rejects a stored token, the server deletes it and reports that the
+  connection was refused.
 
 Pairing pops a prompt on screen, so **do it when nobody is watching**.
+
+### Port 8002 is required for pairing
+
+The Allow prompt and the token flow exist **only on the secure 8002 (wss)
+channel.** A `TokenAuthSupport` TV (this one) rejects a token-less connect on
+the plain 8001 channel with a bare `ms.channel.unauthorized` and **never shows a
+prompt** — which looks like an instant, silent refusal.
+
+`server.py` therefore probes 8002 and tries it first, falling through to 8001
+only if 8002 is unreachable or refuses; a denial on one channel no longer aborts
+the attempt on the other. First observed on this AU8000 on 2026-10-22: 8001 gave
+`ms.channel.unauthorized` with no prompt, while 8002 is open and serves TLS 1.3.
+This matches the note in
+`tools/ha-samsungtv-smart-fab/custom_components/samsungtv_smart/api/samsungws.py`
+("the prompt + token flow only exists on the secure 8002 channel").
 
 ## Key map
 
